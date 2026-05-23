@@ -1,0 +1,71 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Gestion des candidatures — Le Quotidien{% endblock %}
+
+{% block header_title %}Candidatures à la rédaction{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="p-6 border-b border-gray-200">
+        <h3 class="font-bold text-gray-800 text-xl">Demandes de promotion</h3>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left">
+            <thead>
+                <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+                    <th class="px-6 py-4 font-bold">Utilisateur</th>
+                    <th class="px-6 py-4 font-bold">Rôle demandé</th>
+                    <th class="px-6 py-4 font-bold">Motivation</th>
+                    <th class="px-6 py-4 font-bold">Statut</th>
+                    <th class="px-6 py-4 font-bold">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+                {% for req in requests %}
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-6 py-4">
+                        <div class="font-bold text-gray-900">{{ req.user.username }}</div>
+                        <div class="text-xs text-gray-400">{{ req.created_at|date:"d M Y" }}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-1 rounded text-xs font-bold bg-indigo-100 text-indigo-700 uppercase">
+                            {{ req.get_requested_role_display }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-xs text-gray-600 max-w-xs line-clamp-2" title="{{ req.message }}">
+                            {{ req.message }}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        {% if req.status == 'PENDING' %}
+                            <span class="px-2 py-1 rounded text-xs font-bold bg-blue-100 text-blue-700">En attente</span>
+                        {% elif req.status == 'APPROVED' %}
+                            <span class="px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700">Approuvée</span>
+                        {% else %}
+                            <span class="px-2 py-1 rounded text-xs font-bold bg-red-100 text-red-700">Rejetée</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4">
+                        {% if req.status == 'PENDING' %}
+                        <div class="flex gap-2">
+                            <a href="{% url 'dashboard:promotion_request_handle' req.pk 'approve' %}" class="text-xs font-bold text-green-600 hover:underline">Approuver</a>
+                            <a href="{% url 'dashboard:promotion_request_handle' req.pk 'reject' %}" class="text-xs font-bold text-red-600 hover:underline">Rejeter</a>
+                        </div>
+                        {% else %}
+                        <span class="text-xs text-gray-400 italic">Traitée</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="px-6 py-12 text-center text-gray-500 italic">
+                        Aucune demande de promotion pour le moment.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,16 @@
+<div id="newsletter-form-container">
+    <form hx-post="{% url 'newsletter:subscribe' %}" hx-target="#newsletter-form-container" hx-swap="outerHTML" hx-indicator="#footer-newsletter-spinner">
+        {% csrf_token %}
+        <div class="mb-3">
+            <input type="email" name="email" placeholder="votre@email.com" required
+                   class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 transition-all text-white placeholder-gray-500">
+            {% if form.email.errors %}
+                <p class="text-red-500 text-xs mt-2">{{ form.email.errors.0 }}</p>
+            {% endif %}
+        </div>
+        <button type="submit" class="w-full bg-red-600 text-white font-bold py-3 rounded-xl hover:bg-red-700 transition flex items-center justify-center gap-2">
+            <span id="footer-newsletter-spinner" class="htmx-indicator animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+            S'inscrire gratuitement
+        </button>
+    </form>
+</div>

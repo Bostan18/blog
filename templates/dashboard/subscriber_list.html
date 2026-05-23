@@ -1,0 +1,36 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Gestion des abonnés — Le Quotidien{% endblock %}
+
+{% block header_title %}Gestion des abonnés{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="p-6 border-b border-gray-200">
+        <h3 class="font-bold text-gray-800 text-xl">Liste des abonnés Newsletter</h3>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left">
+            <thead>
+                <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+                    <th class="px-6 py-4 font-bold">Email</th>
+                    <th class="px-6 py-4 font-bold">Date d'inscription</th>
+                    <th class="px-6 py-4 font-bold">Statut</th>
+                    <th class="px-6 py-4 font-bold">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+                {% for sub in subscribers %}
+                    {% include "dashboard/subscriber_row.html" %}
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="px-6 py-12 text-center text-gray-500 italic">
+                        Aucun abonné pour le moment.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

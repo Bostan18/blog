@@ -1,0 +1,33 @@
+<tr class="hover:bg-gray-50 transition" id="comment-row-{{ comment.pk }}">
+    <td class="px-6 py-4">
+        <div class="font-bold text-gray-900">{{ comment.author.username }}</div>
+        <div class="text-xs text-gray-400">{{ comment.created_at|date:"d M Y H:i" }}</div>
+    </td>
+    <td class="px-6 py-4">
+        <div class="text-sm text-gray-600 max-w-md truncate" title="{{ comment.content }}">
+            {{ comment.content }}
+        </div>
+    </td>
+    <td class="px-6 py-4">
+        <a href="{% url 'weblog:article_detail' comment.article.slug %}" target="_blank" class="text-xs text-indigo-600 hover:underline">
+            {{ comment.article.title|truncatechars:30 }}
+        </a>
+    </td>
+    <td class="px-6 py-4" id="comment-status-{{ comment.pk }}">
+        {% if comment.is_active %}
+            <span class="px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700">Actif</span>
+        {% else %}
+            <span class="px-2 py-1 rounded text-xs font-bold bg-red-100 text-red-700">Masqué</span>
+        {% endif %}
+    </td>
+    <td class="px-6 py-4">
+        <button 
+            hx-post="{% url 'dashboard:comment_toggle_active' comment.pk %}"
+            hx-target="#comment-row-{{ comment.pk }}"
+            hx-swap="outerHTML"
+            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+            class="text-sm font-bold {% if comment.is_active %}text-red-600 hover:text-red-900{% else %}text-green-600 hover:text-green-900{% endif %} transition">
+            {% if comment.is_active %}Masquer{% else %}Approuver{% endif %}
+        </button>
+    </td>
+</tr>

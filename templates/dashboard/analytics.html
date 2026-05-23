@@ -1,0 +1,64 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Statistiques — Le Quotidien{% endblock %}
+
+{% block header_title %}Statistiques & Performance{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <p class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-1">Vues Totales</p>
+        <div class="flex items-baseline gap-2">
+            <span class="text-3xl font-bold text-gray-900">{{ total_views }}</span>
+            <span class="text-xs text-green-600 font-bold">+12%</span>
+        </div>
+    </div>
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <p class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-1">Moyenne / Article</p>
+        <div class="flex items-baseline gap-2">
+            <span class="text-3xl font-bold text-gray-900">{{ avg_views|floatformat:0 }}</span>
+        </div>
+    </div>
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <p class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-1">Articles Publiés</p>
+        <div class="flex items-baseline gap-2">
+            <span class="text-3xl font-bold text-gray-900">{{ articles_count }}</span>
+        </div>
+    </div>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="p-6 border-b border-gray-200">
+        <h3 class="font-bold text-gray-800 text-lg">Articles les plus consultés</h3>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left">
+            <thead>
+                <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+                    <th class="px-6 py-4 font-bold">Article</th>
+                    <th class="px-6 py-4 font-bold text-center">Vues</th>
+                    <th class="px-6 py-4 font-bold">Engagement</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+                {% for article in top_articles %}
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-6 py-4">
+                        <div class="font-bold text-gray-900">{{ article.title }}</div>
+                        <div class="text-xs text-gray-400">{{ article.category.name }}</div>
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        <span class="font-mono font-bold text-red-600">{{ article.views_count }}</span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="w-full bg-gray-100 rounded-full h-1.5 max-w-[100px]">
+                            <div class="bg-red-500 h-1.5 rounded-full" style="width: {% widthratio article.views_count total_views 100 %}%"></div>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

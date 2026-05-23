@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block content %}
+<main id="page-accueil" class="page-section">
+
+    <!-- Hero Section -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Main Featured Article -->
+            {% if hero_article %}
+            <div class="lg:col-span-7 article-card cursor-pointer group" onclick="location.href='{% url 'weblog:article_detail' hero_article.slug %}'">
+                <div class="relative overflow-hidden rounded-xl">
+                    {% if hero_article.featured_image %}
+                        <img src="{{ hero_article.featured_image.url }}" alt="{{ hero_article.title }}" class="card-img w-full h-72 sm:h-96 object-cover">
+                    {% else %}
+                        <img src="https://picsum.photos/seed/hero{{ hero_article.id }}/800/500" alt="{{ hero_article.title }}" class="card-img w-full h-72 sm:h-96 object-cover">
+                    {% endif %}
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
+                    <div class="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
+                        <span class="cat-badge bg-red-600 text-white mb-3 inline-block">{{ hero_article.category.name }}</span>
+                        <h1 class="font-serif text-2xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight mb-3 group-hover:underline decoration-2 underline-offset-4">
+                            {{ hero_article.title }}
+                        </h1>
+                        <p class="text-gray-200 text-sm sm:text-base mb-3 line-clamp-2">
+                            {{ hero_article.excerpt|default:hero_article.content|truncatewords:20 }}
+                        </p>
+                        <div class="flex items-center text-gray-300 text-xs">
+                            <span class="font-semibold text-white">{{ hero_article.author.get_full_name|default:hero_article.author.username }}</span>
+                            <span class="mx-2">•</span>
+                            <span>{{ hero_article.published_at|timesince }}</span>
+                            <span class="mx-2">•</span>
+                            <span>8 min de lecture</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Side Articles -->
+            <div class="lg:col-span-5 flex flex-col gap-4">
+                {% for article in side_articles %}
+                <div class="article-card cursor-pointer group flex-1 bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100" onclick="location.href='{% url 'weblog:article_detail' article.slug %}'">
+                    <div class="flex sm:flex-row flex-col h-full">
+                        <div class="sm:w-2/5 overflow-hidden">
+                            {% if article.featured_image %}
+                                <img src="{{ article.featured_image.url }}" alt="{{ article.title }}" class="card-img w-full h-full sm:h-full object-cover">
+                            {% else %}
+                                <img src="https://picsum.photos/seed/side{{ article.id }}/400/300" alt="" class="card-img w-full h-full sm:h-full object-cover">
+                            {% endif %}
+                        </div>
+                        <div class="sm:w-3/5 p-4">
+                            <span class="cat-badge {% cycle 'bg-blue-600' 'bg-green-600' 'bg-purple-600' %} text-white">{{ article.category.name }}</span>
+                            <h3 class="font-serif text-lg font-bold mt-2 mb-1 group-hover:text-red-600 transition">{{ article.title }}</h3>
+                            <span class="text-xs text-gray-400">{{ article.published_at|timesince }} • 5 min</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Section: À la une -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="font-serif text-2xl font-bold relative">
+                À la une
+                <span class="absolute -bottom-2 left-0 w-12 h-1 bg-red-600 rounded"></span>
+            </h2>
+            <a href="{% url 'search:search_page' %}" class="text-sm font-semibold text-red-600 hover:underline">Voir tout →</a>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {% for article in latest_articles %}
+            <div class="article-card bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer group" onclick="location.href='{% url 'weblog:article_detail' article.slug %}'">
+                <div class="overflow-hidden">
+                    {% if article.featured_image %}
+                        <img src="{{ article.featured_image.url }}" alt="{{ article.title }}" class="card-img w-full h-48 object-cover">
+                    {% else %}
+                        <img src="https://picsum.photos/seed/news{{ article.id }}/400/250" alt="" class="card-img w-full h-48 object-cover">
+                    {% endif %}
+                </div>
+                <div class="p-4">
+                    <span class="cat-badge bg-red-600 text-white">{{ article.category.name }}</span>
+                    <h3 class="font-serif text-base font-bold mt-3 mb-2 group-hover:text-red-600 transition leading-snug">{{ article.title }}</h3>
+                    <span class="text-xs text-gray-400">{{ article.published_at|timesince }} • 7 min</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- Section: Chroniques récentes + Les plus lus -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Chroniques récentes -->
+            <div class="lg:col-span-2">
+                <h2 class="font-serif text-2xl font-bold mb-6 relative">
+                    Chroniques récentes
+                    <span class="absolute -bottom-2 left-0 w-12 h-1 bg-red-600 rounded"></span>
+                </h2>
+                <div class="space-y-4">
+                    {% for article in chroniques %}
+                    <div class="chronique-item bg-white p-5 rounded-lg shadow-sm border border-gray-100 cursor-pointer" onclick="location.href='{% url 'weblog:article_detail' article.slug %}'">
+                        <div class="flex items-start gap-4">
+                            <div class="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-500 flex-shrink-0">
+                                {{ article.author.username|first|upper }}
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-sm font-bold">{{ article.author.get_full_name|default:article.author.username }}</span>
+                                    <span class="cat-badge bg-red-600 text-white">Éditorial</span>
+                                </div>
+                                <h3 class="font-serif text-lg font-bold hover:text-red-600 transition">« {{ article.title }} »</h3>
+                                <p class="text-gray-500 text-sm mt-1 line-clamp-2">{{ article.excerpt|default:article.content|truncatewords:20 }}</p>
+                                <span class="text-xs text-gray-400 mt-2 block">{{ article.published_at|timesince }} • 6 min de lecture</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="mt-4 text-center">
+                    <a href="{% url 'weblog:chronique_list' %}" class="bg-gray-100 text-gray-700 font-semibold px-6 py-3 rounded-lg hover:bg-gray-200 transition inline-block">Toutes les chroniques →</a>
+                </div>
+            </div>
+
+            <!-- Les plus lus -->
+            <div>
+                <h2 class="font-serif text-2xl font-bold mb-6 relative">
+                    Les plus lus
+                    <span class="absolute -bottom-2 left-0 w-12 h-1 bg-red-600 rounded"></span>
+                </h2>
+                <div class="space-y-4">
+                    {% for article in top_articles %}
+                    <div class="flex gap-4 items-start cursor-pointer group" onclick="location.href='{% url 'weblog:article_detail' article.slug %}'">
+                        <span class="font-serif text-3xl font-black text-red-600 leading-none">{{ forloop.counter }}</span>
+                        <div>
+                            <h4 class="font-semibold text-sm group-hover:text-red-600 transition leading-snug">{{ article.title }}</h4>
+                            <span class="text-xs text-gray-400 mt-1">{% widthratio article.id 1 1000 %} lectures</span>
+                        </div>
+                    </div>
+                    {% if not forloop.last %}<div class="border-t border-gray-100"></div>{% endif %}
+                    {% endfor %}
+                </div>
+
+                <!-- Newsletter -->
+                <div class="mt-8 bg-gray-900 rounded-xl p-6 text-white">
+                    <h3 class="font-serif text-xl font-bold mb-2">La newsletter du Quotidien</h3>
+                    <p class="text-gray-400 text-sm mb-4">Recevez chaque matin les articles essentiels à comprendre l'actualité.</p>
+                    {% include "newsletter/partials/form.html" with form=subscriber_form %}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section: Vidéos / Multimédia -->
+    <section class="bg-gray-900 py-12 mt-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6">
+            <h2 class="font-serif text-2xl font-bold text-white mb-6 relative">
+                Vidéos
+                <span class="absolute -bottom-2 left-0 w-12 h-1 bg-red-600 rounded"></span>
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="group cursor-pointer">
+                    <div class="relative overflow-hidden rounded-lg mb-3">
+                        <img src="https://picsum.photos/seed/vid1/600/340" alt="" class="w-full h-48 object-cover group-hover:scale-105 transition duration-500">
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="w-14 h-14 bg-white/90 rounded-full flex items-center justify-center group-hover:bg-white transition">
+                                <svg class="w-6 h-6 text-red-600 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                            </div>
+                        </div>
+                        <span class="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">12:34</span>
+                    </div>
+                    <h4 class="text-white font-semibold text-sm group-hover:text-red-400 transition">Reportage : dans les coulisses de l'Assemblée nationale</h4>
+                    <span class="text-gray-500 text-xs mt-1 block">Il y a 1 jour • 45 200 vues</span>
+                </div>
+                <div class="group cursor-pointer">
+                    <div class="relative overflow-hidden rounded-lg mb-3">
+                        <img src="https://picsum.photos/seed/vid2/600/340" alt="" class="w-full h-48 object-cover group-hover:scale-105 transition duration-500">
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="w-14 h-14 bg-white/90 rounded-full flex items-center justify-center group-hover:bg-white transition">
+                                <svg class="w-6 h-6 text-red-600 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                            </div>
+                        </div>
+                        <span class="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">08:21</span>
+                    </div>
+                    <h4 class="text-white font-semibold text-sm group-hover:text-red-400 transition">Interview exclusive : « L'Europe doit se réinventer »</h4>
+                    <span class="text-gray-500 text-xs mt-1 block">Il y a 2 jours • 32 100 vues</span>
+                </div>
+                <div class="group cursor-pointer">
+                    <div class="relative overflow-hidden rounded-lg mb-3">
+                        <img src="https://picsum.photos/seed/vid3/600/340" alt="" class="w-full h-48 object-cover group-hover:scale-105 transition duration-500">
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="w-14 h-14 bg-white/90 rounded-full flex items-center justify-center group-hover:bg-white transition">
+                                <svg class="w-6 h-6 text-red-600 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                            </div>
+                        </div>
+                        <span class="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">15:47</span>
+                    </div>
+                    <h4 class="text-white font-semibold text-sm group-hover:text-red-400 transition">Documentaire : la Silicon Valley française existe-t-elle ?</h4>
+                    <span class="text-gray-500 text-xs mt-1 block">Il y a 3 jours • 28 400 vues</span>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock %}

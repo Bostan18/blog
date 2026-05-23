@@ -1,0 +1,37 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Modération des commentaires — Le Quotidien{% endblock %}
+
+{% block header_title %}Modération des commentaires{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="p-6 border-b border-gray-200">
+        <h3 class="font-bold text-gray-800 text-xl">Derniers commentaires</h3>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left">
+            <thead>
+                <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+                    <th class="px-6 py-4 font-bold">Auteur</th>
+                    <th class="px-6 py-4 font-bold">Commentaire</th>
+                    <th class="px-6 py-4 font-bold">Article</th>
+                    <th class="px-6 py-4 font-bold">Statut</th>
+                    <th class="px-6 py-4 font-bold">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+                {% for comment in comments %}
+                    {% include "dashboard/comment_row.html" %}
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="px-6 py-12 text-center text-gray-500 italic">
+                        Aucun commentaire à modérer.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

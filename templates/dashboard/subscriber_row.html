@@ -1,0 +1,25 @@
+<tr class="hover:bg-gray-50 transition" id="subscriber-row-{{ sub.pk }}">
+    <td class="px-6 py-4">
+        <div class="font-bold text-gray-900">{{ sub.email }}</div>
+    </td>
+    <td class="px-6 py-4 text-sm text-gray-500">
+        {{ sub.subscribed_at|date:"d M Y H:i" }}
+    </td>
+    <td class="px-6 py-4">
+        {% if sub.is_active %}
+            <span class="px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700">Actif</span>
+        {% else %}
+            <span class="px-2 py-1 rounded text-xs font-bold bg-red-100 text-red-700">Inactif</span>
+        {% endif %}
+    </td>
+    <td class="px-6 py-4">
+        <button 
+            hx-post="{% url 'dashboard:subscriber_toggle_active' sub.pk %}"
+            hx-target="#subscriber-row-{{ sub.pk }}"
+            hx-swap="outerHTML"
+            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+            class="text-sm font-bold {% if sub.is_active %}text-red-600 hover:text-red-900{% else %}text-green-600 hover:text-green-900{% endif %} transition">
+            {% if sub.is_active %}Désactiver{% else %}Activer{% endif %}
+        </button>
+    </td>
+</tr>

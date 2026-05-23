@@ -1,0 +1,28 @@
+<div class="space-y-6">
+    {% for comment in comments %}
+    <div class="flex gap-4 fade-up visible">
+        <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-500 flex-shrink-0">
+            {{ comment.author.username|first|upper }}
+        </div>
+        <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+                <span class="font-semibold text-sm">{{ comment.author.get_full_name|default:comment.author.username }}</span>
+                <span class="text-xs text-gray-400">Il y a {{ comment.created_at|timesince }}</span>
+            </div>
+            <p class="text-sm text-gray-700">{{ comment.content|linebreaksbr }}</p>
+            <div class="flex items-center gap-4 mt-2">
+                <button class="text-xs text-gray-500 hover:text-red-600 transition">👍 Utile</button>
+                <button class="text-xs text-gray-500 hover:text-red-600 transition">💬 Répondre</button>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <p class="text-center text-gray-500 italic py-8">Aucun commentaire pour le moment. Soyez le premier à donner votre avis !</p>
+    {% endfor %}
+</div>
+
+{% if comment_success %}
+<div id="comment-success-toast" x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3000)" class="fixed bottom-5 right-5 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50">
+    Votre commentaire a été publié avec succès.
+</div>
+{% endif %}

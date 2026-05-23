@@ -1,0 +1,80 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Recrutement — Le Quotidien{% endblock %}
+
+{% block header_title %}Devenir membre de la rédaction{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    {% if existing_request %}
+        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-xl mb-8">
+            <div class="flex items-center gap-4">
+                <div class="p-3 bg-yellow-100 rounded-full text-yellow-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <div>
+                    <h3 class="font-bold text-yellow-800">Demande en cours</h3>
+                    <p class="text-yellow-700 text-sm">Vous avez déjà une demande pour le rôle <span class="font-bold uppercase">{{ existing_request.get_requested_role_display }}</span> en attente de traitement.</p>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 mb-8">
+            <h3 class="font-bold text-gray-800 text-xl mb-4">Postuler à un rôle</h3>
+            <p class="text-gray-500 text-sm mb-8 leading-relaxed">
+                Vous souhaitez contribuer plus activement au journal ? Remplissez ce formulaire pour soumettre votre candidature à l'équipe éditoriale. 
+                Expliquez-nous votre parcours et vos motivations.
+            </p>
+
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Rôle souhaité</label>
+                    {{ form.requested_role }}
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Votre motivation</label>
+                    {{ form.message }}
+                </div>
+                <button type="submit" class="w-full bg-red-600 text-white font-bold py-3 rounded-xl hover:bg-red-700 transition shadow-lg shadow-red-600/20">
+                    Envoyer ma candidature
+                </button>
+            </form>
+        </div>
+    {% endif %}
+
+    {% if my_requests %}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="font-bold text-gray-800 text-lg">Historique de mes demandes</h3>
+            </div>
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+                        <th class="px-6 py-4 font-bold">Rôle</th>
+                        <th class="px-6 py-4 font-bold">Date</th>
+                        <th class="px-6 py-4 font-bold">Statut</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 text-sm">
+                    {% for req in my_requests %}
+                    <tr>
+                        <td class="px-6 py-4 font-bold">{{ req.get_requested_role_display }}</td>
+                        <td class="px-6 py-4 text-gray-500">{{ req.created_at|date:"d M Y" }}</td>
+                        <td class="px-6 py-4">
+                            {% if req.status == 'PENDING' %}
+                                <span class="px-2 py-1 rounded text-xs font-bold bg-blue-100 text-blue-700">En attente</span>
+                            {% elif req.status == 'APPROVED' %}
+                                <span class="px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700">Approuvée</span>
+                            {% else %}
+                                <span class="px-2 py-1 rounded text-xs font-bold bg-red-100 text-red-700">Rejetée</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

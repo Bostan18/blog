@@ -1,0 +1,23 @@
+<!-- Comment form -->
+<div class="mb-8 bg-gray-50 rounded-xl p-5">
+    {% if user.is_authenticated %}
+    <form 
+        hx-post="{% url 'comments:add_comment' article.id %}" 
+        hx-target="#comments-list" 
+        hx-swap="innerHTML"
+        hx-on::after-request="if(event.detail.successful) this.reset()"
+    >
+        {% csrf_token %}
+        <textarea name="content" placeholder="Partagez votre avis sur cet article..." class="w-full p-4 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 resize-none" rows="3" required></textarea>
+        <div class="flex justify-between items-center mt-3">
+            <span class="text-xs text-gray-400">Connecté en tant que <strong class="text-gray-600">{{ user.username }}</strong></span>
+            <button type="submit" class="bg-red-600 text-white text-sm font-semibold px-5 py-2 rounded-lg hover:bg-red-700 transition">Publier</button>
+        </div>
+    </form>
+    {% else %}
+    <div class="text-center py-4">
+        <p class="text-sm text-gray-500 mb-3">Vous devez être connecté pour poster un commentaire.</p>
+        <a href="/admin/" class="bg-red-600 text-white text-sm font-semibold px-5 py-2 rounded-lg hover:bg-red-700 transition inline-block">Se connecter</a>
+    </div>
+    {% endif %}
+</div>

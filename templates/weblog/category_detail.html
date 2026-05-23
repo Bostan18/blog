@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}{{ category.name }} — Le Quotidien{% endblock %}
+
+{% block content %}
+<main class="page-section active">
+
+    <!-- Category Header -->
+    <section class="bg-gray-100 py-12 border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6">
+            <div class="text-center">
+                <span class="text-red-600 text-sm font-bold uppercase tracking-widest">Rubrique</span>
+                <h1 class="font-serif text-4xl sm:text-5xl font-bold text-gray-900 mt-3">{{ category.name }}</h1>
+            </div>
+        </div>
+    </section>
+
+    <!-- Articles Grid -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {% for article in articles %}
+            <div class="article-card bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer group" onclick="location.href='{% url 'weblog:article_detail' article.slug %}'">
+                <div class="overflow-hidden">
+                    {% if article.featured_image %}
+                        <img src="{{ article.featured_image.url }}" alt="{{ article.title }}" class="card-img w-full h-56 object-cover">
+                    {% else %}
+                        <img src="https://picsum.photos/seed/cat{{ article.id }}/400/300" alt="" class="card-img w-full h-56 object-cover">
+                    {% endif %}
+                </div>
+                <div class="p-6">
+                    <span class="cat-badge bg-gray-100 text-gray-600">{{ article.category.name }}</span>
+                    <h3 class="font-serif text-xl font-bold mt-3 mb-2 group-hover:text-red-600 transition leading-snug">{{ article.title }}</h3>
+                    <p class="text-gray-500 text-sm line-clamp-2 mb-4">{{ article.excerpt|default:article.content|truncatewords:20 }}</p>
+                    <div class="flex items-center justify-between text-xs text-gray-400">
+                        <span>{{ article.author.get_full_name|default:article.author.username }}</span>
+                        <span>{{ article.published_at|date:"d M Y" }}</span>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-span-full py-20 text-center">
+                <p class="text-gray-500 italic">Aucun article trouvé dans cette catégorie.</p>
+                <a href="{% url 'home' %}" class="mt-4 inline-block text-red-600 font-bold hover:underline">Retour à l'accueil</a>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+</main>
+{% endblock %}

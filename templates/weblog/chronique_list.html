@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Chroniques — Le Quotidien{% endblock %}
+
+{% block content %}
+<main id="page-chroniques" class="page-section active">
+
+    <!-- Chroniques Header -->
+    <section class="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6">
+            <div class="text-center">
+                <span class="text-red-400 text-sm font-bold uppercase tracking-widest">Opinions & Analyses</span>
+                <h1 class="font-serif text-4xl sm:text-5xl font-bold text-white mt-3 mb-4">Chroniques</h1>
+                <p class="text-gray-400 text-lg max-w-2xl mx-auto">Les analyses, opinions et regards de nos éditorialistes et chroniqueurs sur l'actualité.</p>
+            </div>
+            <!-- Filter tabs (simulation) -->
+            <div class="flex flex-wrap justify-center gap-3 mt-8">
+                <button class="bg-red-600 text-white px-5 py-2 rounded-full text-sm font-semibold transition">Toutes</button>
+                <button class="bg-gray-700 text-gray-300 px-5 py-2 rounded-full text-sm font-semibold hover:bg-gray-600 transition">Éditorial</button>
+                <button class="bg-gray-700 text-gray-300 px-5 py-2 rounded-full text-sm font-semibold hover:bg-gray-600 transition">Culture</button>
+                <button class="bg-gray-700 text-gray-300 px-5 py-2 rounded-full text-sm font-semibold hover:bg-gray-600 transition">Environnement</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Chronique -->
+    {% if featured_chronique %}
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+        <div class="bg-white rounded-2xl overflow-hidden shadow-lg border border-gray-100 cursor-pointer hover:shadow-xl transition" onclick="location.href='{% url 'weblog:article_detail' featured_chronique.slug %}'">
+            <div class="grid grid-cols-1 md:grid-cols-2">
+                <div class="overflow-hidden">
+                    {% if featured_chronique.featured_image %}
+                        <img src="{{ featured_chronique.featured_image.url }}" alt="" class="w-full h-full object-cover min-h-64 hover:scale-105 transition duration-700">
+                    {% else %}
+                        <img src="https://picsum.photos/seed/feat-chrono/800/500" alt="" class="w-full h-full object-cover min-h-64 hover:scale-105 transition duration-700">
+                    {% endif %}
+                </div>
+                <div class="p-8 sm:p-10 flex flex-col justify-center">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-500">
+                            {{ featured_chronique.author.username|first|upper }}
+                        </div>
+                        <div>
+                            <span class="font-bold text-sm block">{{ featured_chronique.author.get_full_name|default:featured_chronique.author.username }}</span>
+                            <span class="text-xs text-gray-400">Éditorialiste</span>
+                        </div>
+                    </div>
+                    <span class="cat-badge bg-red-600 text-white mb-3 inline-block w-fit">À la une</span>
+                    <h2 class="font-serif text-2xl sm:text-3xl font-bold mb-3 leading-tight hover:text-red-600 transition">« {{ featured_chronique.title }} »</h2>
+                    <p class="text-gray-600 leading-relaxed mb-4">{{ featured_chronique.excerpt|default:featured_chronique.content|truncatewords:40 }}</p>
+                    <div class="flex items-center gap-4 text-sm text-gray-400">
+                        <span>{{ featured_chronique.published_at|date:"d F Y" }}</span>
+                        <span>•</span>
+                        <span>6 min de lecture</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Chroniques Grid -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 pb-10">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for chronique in other_chroniques %}
+            <div class="chronique-card bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 article-card cursor-pointer" onclick="location.href='{% url 'weblog:article_detail' chronique.slug %}'">
+                <div class="overflow-hidden">
+                    {% if chronique.featured_image %}
+                        <img src="{{ chronique.featured_image.url }}" alt="" class="card-img w-full h-52 object-cover">
+                    {% else %}
+                        <img src="https://picsum.photos/seed/chr{{ chronique.id }}/400/250" alt="" class="card-img w-full h-52 object-cover">
+                    {% endif %}
+                </div>
+                <div class="p-5">
+                    <div class="flex items-center gap-2 mb-3">
+                        <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center font-bold text-xs text-gray-500">
+                            {{ chronique.author.username|first|upper }}
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold block">{{ chronique.author.get_full_name|default:chronique.author.username }}</span>
+                            <span class="cat-badge bg-purple-600 text-white text-xs py-0.5 px-2">Chronique</span>
+                        </div>
+                    </div>
+                    <h3 class="font-serif text-lg font-bold leading-snug hover:text-red-600 transition mb-2">{{ chronique.title }}</h3>
+                    <p class="text-gray-500 text-sm line-clamp-2">{{ chronique.excerpt|default:chronique.content|truncatewords:20 }}</p>
+                    <span class="text-xs text-gray-400 mt-3 block">{{ chronique.published_at|timesince }} • 8 min</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if not other_chroniques and not featured_chronique %}
+        <p class="text-center text-gray-500 italic py-12">Aucune chronique publiée pour le moment.</p>
+        {% endif %}
+
+        <!-- Load more simulation -->
+        <div class="text-center mt-10">
+            <button class="bg-gray-900 text-white font-semibold px-8 py-3 rounded-lg hover:bg-gray-800 transition">
+                Charger plus de chroniques
+            </button>
+        </div>
+    </section>
+
+    <!-- Our Columnists -->
+    <section class="bg-gray-50 py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6">
+            <h2 class="font-serif text-2xl font-bold mb-8 text-center">Nos chroniqueurs</h2>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                {% for chro in chroniqueurs %}
+                <div class="text-center cursor-pointer group">
+                    <div class="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center font-bold text-2xl text-gray-500 mx-auto mb-3 group-hover:ring-4 ring-red-200 transition">
+                        {{ chro.username|first|upper }}
+                    </div>
+                    <h4 class="font-bold text-sm">{{ chro.get_full_name|default:chro.username }}</h4>
+                    <p class="text-xs text-gray-500">Chroniqueur</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock %}

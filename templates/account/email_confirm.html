@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load account %}
+
+{% block title %}{% trans "Vérification de l'adresse email" %} — Le Quotidien{% endblock %}
+
+{% block content %}
+<main class="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-900">
+    <div class="max-w-md w-full space-y-8 bg-white dark:bg-gray-800 p-10 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 text-center">
+        <div class="bg-indigo-50 dark:bg-indigo-900/20 w-16 h-16 rounded-full flex items-center justify-center mb-6 mx-auto text-indigo-600">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+            </svg>
+        </div>
+
+        <h2 class="text-3xl font-serif font-bold text-gray-900 dark:text-white mb-2">
+            {% trans "Vérifiez votre email" %}
+        </h2>
+
+        {% if confirmation %}
+            {% user_display confirmation.email_address.user as user_display %}
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-8">
+                {% blocktranslate with confirmation.email_address.email as email %}Confirmez que <span class="font-bold text-gray-900 dark:text-white">{{ email }}</span> est bien votre adresse email pour le compte <span class="font-bold">{{ user_display }}</span>.{% endblocktranslate %}
+            </p>
+
+            <form method="post" action="{% url 'account_confirm_email' confirmation.key %}">
+                {% csrf_token %}
+                <button type="submit" class="w-full py-3 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-red-600 hover:bg-red-700 transition shadow-lg shadow-red-600/20">
+                    {% trans "Confirmer mon adresse email" %}
+                </button>
+            </form>
+        {% else %}
+            {% url 'account_email' as email_url %}
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-8">
+                {% blocktranslate %}Ce lien de confirmation a expiré. Merci de <a href="{{ email_url }}" class="text-red-600 font-bold hover:underline">renvoyer une nouvelle demande</a>.{% endblocktranslate %}
+            </p>
+        {% endif %}
+    </div>
+</main>
+{% endblock %}

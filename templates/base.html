@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Le Quotidien — Site d'Information{% endblock %}</title>
+    
+    {% block meta %}
+    <meta name="description" content="Le Quotidien - Votre source d'information indépendante.">
+    <!-- Open Graph -->
+    <meta property="og:title" content="Le Quotidien">
+    <meta property="og:description" content="Votre source d'information indépendante.">
+    <meta property="og:type" content="website">
+    {% endblock %}
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Fonts -->
+    <link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@4.5.0/index.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@fontsource/playfair-display@4.5.0/index.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@fontsource/source-serif-pro@4.5.0/index.css" rel="stylesheet">
+    
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
+    
+    <!-- Alpine.js -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                        'body-serif': ['Source Serif Pro', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #fafafa; color: #1a1a1a; }
+        
+        /* Font Utility Classes (redundant but safe) */
+        .font-serif { font-family: 'Playfair Display', serif !important; }
+        .font-body-serif { font-family: 'Source Serif Pro', serif !important; }
+
+        /* Hover effects */
+        .article-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .article-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.12); }
+        .article-card .card-img { transition: transform 0.5s ease; }
+        .article-card:hover .card-img { transform: scale(1.05); }
+
+        /* Chronique hover */
+        .chronique-item { transition: all 0.3s ease; border-left: 3px solid transparent; }
+        .chronique-item:hover { border-left-color: #dc2626; background: #fff; transform: translateX(4px); }
+
+        /* Navigation active state */
+        .nav-link { position: relative; }
+        .nav-link::after {
+            content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px;
+            background: #dc2626; transition: width 0.3s ease;
+        }
+        .nav-link:hover::after, .nav-link.active::after { width: 100%; }
+
+        /* Reading progress bar */
+        #progressBar { width: 0%; height: 3px; background: #dc2626; position: fixed; top: 0; left: 0; z-index: 999; transition: width 0.1s; }
+
+        /* Scroll animations */
+        .fade-up { opacity: 0; transform: translateY(30px); transition: opacity 0.6s ease, transform 0.6s ease; }
+        .fade-up.visible { opacity: 1; transform: translateY(0); }
+
+        /* Category badge */
+        .cat-badge { font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700; padding: 3px 10px; border-radius: 2px; }
+
+        /* Article content styles */
+        .article-body p { margin-bottom: 1.5em; line-height: 1.9; font-size: 1.125rem; color: #374151; }
+        .article-body h2 { font-family: 'Playfair Display', serif; font-size: 1.75rem; margin: 2em 0 1em; color: #111; }
+        .article-body blockquote {
+            border-left: 4px solid #dc2626; padding: 1.5em 2em; margin: 2em 0;
+            background: #fef2f2; font-style: italic; font-size: 1.25rem; color: #4a4a4a;
+        }
+
+        /* Mobile menu */
+        .mobile-menu { transform: translateX(100%); transition: transform 0.3s ease; }
+        .mobile-menu.open { transform: translateX(0); }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a1a1a1; }
+
+        [x-cloak] { display: none !important; }
+        .htmx-indicator { display: none; }
+        .htmx-request .htmx-indicator { display: block; }
+
+        /* Dark Mode Transitions */
+        body { transition: background-color 0.3s ease, color 0.3s ease; }
+        
+        /* Dark Mode Colors */
+        .dark body { background-color: #111827; color: #f3f4f6; }
+        .dark header, .dark #mobileMenu .bg-white { background-color: #1f2937; border-color: #374151; }
+        .dark .nav-link, .dark .text-gray-700, .dark .text-gray-600 { color: #d1d5db; }
+        .dark .bg-white { background-color: #1f2937; }
+        .dark .bg-gray-50 { background-color: #111827; }
+        .dark .border-gray-200, .dark .border-gray-100 { border-color: #374151; }
+        .dark .article-card h3, .dark .article-card h1 { color: #ffffff; }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body x-data="{ 
+mobileMenuOpen: false, 
+searchOpen: false,
+newsletterOpen: false,
+darkMode: localStorage.getItem('darkMode') === 'true',
+toggleDarkMode() {
+    this.darkMode = !this.darkMode;
+    localStorage.setItem('darkMode', this.darkMode);
+    document.documentElement.classList.toggle('dark', this.darkMode);
+}
+}" x-init="document.documentElement.classList.toggle('dark', darkMode)">
+
+    {% include "newsletter/partials/modal.html" %}
+
+
+    <!-- Reading Progress Bar -->
+    <div id="progressBar"></div>
+
+    <!-- Header / Navigation -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6">
+            <div class="flex items-center justify-between h-16">
+                <!-- Mobile menu button -->
+                <button @click="mobileMenuOpen = true" class="lg:hidden p-2 rounded-md hover:bg-gray-100">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                </button>
+
+                <!-- Logo -->
+                <a href="{% url 'home' %}" class="flex items-center cursor-pointer">
+                    <span class="font-serif text-2xl sm:text-3xl font-black tracking-tight">Le Quotidien</span>
+                    <span class="ml-2 text-xs bg-red-600 text-white px-2 py-0.5 rounded font-bold hidden sm:inline">LIVE</span>
+                </a>
+
+                <!-- Desktop Navigation -->
+                <nav class="hidden lg:flex items-center space-x-8">
+                    <a href="{% url 'home' %}" class="nav-link text-sm font-semibold text-gray-700 hover:text-red-600 transition {% if request.resolver_match.url_name == 'home' %}active{% endif %}">Accueil</a>
+                    <a href="{% url 'weblog:chronique_list' %}" class="nav-link text-sm font-semibold text-gray-700 hover:text-red-600 transition {% if 'chronique' in request.path %}active{% endif %}">Chroniques</a>
+                    <a href="{% url 'weblog:author_index' %}" class="nav-link text-sm font-semibold text-gray-700 hover:text-red-600 transition {% if 'authors' in request.path %}active{% endif %}">La Rédaction</a>
+                    {% for cat in nav_categories %}
+                    <a href="{% url 'weblog:category_detail' cat.slug %}" class="nav-link text-sm font-semibold text-gray-700 hover:text-red-600 transition {% if cat.slug in request.path %}active{% endif %}">{{ cat.name }}</a>
+                    {% endfor %}
+                </nav>
+
+                <!-- Search & Actions -->
+                <div class="flex items-center space-x-3">
+                    <button @click="toggleDarkMode()" class="p-2 rounded-full hover:bg-gray-100 transition text-gray-600 dark:text-gray-300">
+                        <svg x-show="!darkMode" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+                        <svg x-show="darkMode" x-cloak class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 18v1m9-9h1M3 9h1m17.657 5.657l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                    </button>
+                    <button @click="searchOpen = !searchOpen" class="p-2 rounded-full hover:bg-gray-100 transition">
+                        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </button>
+                    {% if user.is_authenticated %}
+                        {% if user.role in 'WRITER,EDITOR,ADMIN' or user.is_staff %}
+                        <a href="{% url 'dashboard:home' %}" class="text-xs font-bold bg-gray-100 text-gray-700 px-3 py-2 rounded hover:bg-gray-200 transition hidden sm:block">Dashboard</a>
+                        {% endif %}
+                        <a href="/admin/" class="text-xs font-bold text-gray-600 hover:text-red-600 transition hidden sm:block">Admin</a>
+                    {% else %}
+                        <button @click="newsletterOpen = true" class="bg-red-600 text-white text-xs font-bold px-4 py-2 rounded hover:bg-red-700 transition hidden sm:block">S'abonner</button>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Search Bar -->
+            <div x-show="searchOpen" x-cloak class="pb-4">
+                <form action="{% url 'search:search_page' %}" method="get" class="relative">
+                    <input 
+                        type="text" 
+                        name="q"
+                        placeholder="Rechercher un article, une chronique..." 
+                        class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
+                        hx-get="{% url 'search:article_search' %}"
+                        hx-trigger="keyup changed delay:300ms, search"
+                        hx-target="#search-results-container"
+                        hx-indicator="#search-indicator"
+                        autocomplete="off"
+                    >
+                    <svg class="absolute left-3 top-3.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    <div id="search-indicator" class="htmx-indicator absolute right-3 top-3.5">
+                        <svg class="animate-spin h-5 w-5 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </div>
+                </form>
+                <div id="search-results-container" class="mt-2"></div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div x-show="mobileMenuOpen" x-cloak class="fixed inset-0 z-50 lg:hidden">
+            <div class="fixed inset-0 bg-black/50" @click="mobileMenuOpen = false"></div>
+            <div class="fixed inset-y-0 right-0 w-72 bg-white shadow-2xl transition-transform duration-300 transform" :class="mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'">
+                <div class="p-6">
+                    <button @click="mobileMenuOpen = false" class="absolute top-4 right-4 p-2">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                    <h3 class="font-serif text-xl font-bold mb-6 mt-4">Navigation</h3>
+                    <nav class="space-y-4">
+                        <a href="{% url 'home' %}" class="block w-full text-left text-lg font-semibold text-gray-700 hover:text-red-600">Accueil</a>
+                        <a href="{% url 'weblog:chronique_list' %}" class="block w-full text-left text-lg font-semibold text-gray-700 hover:text-red-600">Chroniques</a>
+                        {% for cat in nav_categories %}
+                        <a href="{% url 'weblog:category_detail' cat.slug %}" class="block w-full text-left text-lg font-semibold text-gray-700 hover:text-red-600">{{ cat.name }}</a>
+                        {% endfor %}
+                    </nav>
+                    <button @click="mobileMenuOpen = false; newsletterOpen = true" class="w-full mt-8 bg-red-600 text-white font-bold py-3 rounded-lg hover:bg-red-700 transition">S'abonner — 1€/mois</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    {% block content %}{% endblock %}
+
+    <!-- Footer -->
+    <footer class="bg-gray-950 text-gray-400 py-12 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+                <div>
+                    <h4 class="text-white font-bold mb-4">Le Quotidien</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-white transition">À propos</a></li>
+                        <li><a href="{% url 'weblog:author_index' %}" class="hover:text-white transition">Rédaction</a></li>
+                        <li><a href="{% url 'dashboard:promotion_request' %}" class="hover:text-white transition">Recrutement</a></li>
+                        <li><a href="#" class="hover:text-white transition">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white font-bold mb-4">Rubriques</h4>
+                    <ul class="space-y-2 text-sm">
+                        {% for cat in nav_categories|slice:":4" %}
+                        <li><a href="{% url 'weblog:category_detail' cat.slug %}" class="hover:text-white transition">{{ cat.name }}</a></li>
+                        {% empty %}
+                        <li><a href="#" class="hover:text-white transition">Politique</a></li>
+                        <li><a href="#" class="hover:text-white transition">Économie</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white font-bold mb-4">Services</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><button @click="newsletterOpen = true" class="hover:text-white transition text-left">Abonnement</button></li>
+                        <li><button @click="newsletterOpen = true" class="hover:text-white transition text-left">Newsletter</button></li>
+                        <li><a href="#" class="hover:text-white transition">Application mobile</a></li>
+                        <li><a href="{% url 'weblog:article_feed' %}" class="hover:text-white transition">Flux RSS</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white font-bold mb-4">Légal</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-white transition">Mentions légales</a></li>
+                        <li><a href="#" class="hover:text-white transition">Politique de confidentialité</a></li>
+                        <li><a href="#" class="hover:text-white transition">CGV</a></li>
+                        <li><a href="#" class="hover:text-white transition">Cookies</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 pt-8 flex flex-col sm:flex-row items-center justify-between">
+                <span class="font-serif text-xl font-bold text-white mb-4 sm:mb-0">Le Quotidien</span>
+                <span class="text-xs">© {% now "Y" %} Le Quotidien. Tous droits réservés.</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Reading progress bar
+        window.addEventListener('scroll', function() {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            const progressBar = document.getElementById('progressBar');
+            if (progressBar) progressBar.style.width = scrolled + '%';
+        });
+
+        // Fade-up animation on scroll
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

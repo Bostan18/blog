@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Nos Auteurs — Le Quotidien{% endblock %}
+
+{% block content %}
+<main class="page-section active">
+    <!-- Header -->
+    <section class="bg-gray-900 py-16 text-white text-center">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6">
+            <h1 class="font-serif text-4xl sm:text-5xl font-bold mb-4">La Rédaction</h1>
+            <p class="text-gray-400 text-lg max-w-2xl mx-auto">Découvrez les voix qui font Le Quotidien. Journalistes, chroniqueurs et experts engagés pour une information de qualité.</p>
+        </div>
+    </section>
+
+    <!-- Authors Grid -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 py-12">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {% for author in authors %}
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center group hover:shadow-md transition">
+                <div class="relative inline-block mb-4">
+                    {% if author.avatar %}
+                        <img src="{{ author.avatar.url }}" alt="{{ author.username }}" class="w-24 h-24 rounded-full object-cover ring-4 ring-gray-50 group-hover:ring-red-50 transition">
+                    {% else %}
+                        <div class="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center font-bold text-3xl text-gray-500 ring-4 ring-gray-50 group-hover:ring-red-50 transition">
+                            {{ author.username|first|upper }}
+                        </div>
+                    {% endif %}
+                </div>
+                <h3 class="font-serif text-xl font-bold mb-1 group-hover:text-red-600 transition">{{ author.get_full_name|default:author.username }}</h3>
+                <p class="text-red-600 text-sm font-semibold uppercase tracking-wider mb-4">{{ author.get_role_display }}</p>
+                <p class="text-gray-600 text-sm line-clamp-3 mb-6">
+                    {{ author.bio|default:"Passionné par l'information et le journalisme de terrain." }}
+                </p>
+                <a href="{% url 'weblog:author_detail' author.username %}" class="inline-block bg-gray-900 text-white text-sm font-bold px-6 py-2 rounded-lg hover:bg-red-600 transition">
+                    Voir ses articles
+                </a>
+            </div>
+            {% empty %}
+            <p class="col-span-full text-center text-gray-500 italic py-12">Aucun auteur n'est encore enregistré.</p>
+            {% endfor %}
+        </div>
+    </section>
+</main>
+{% endblock %}
