@@ -221,7 +221,8 @@ toggleDarkMode() {
                         {% endif %}
                         <a href="/admin/" class="text-xs font-bold text-gray-600 hover:text-red-600 transition hidden sm:block">Admin</a>
                     {% else %}
-                        <button @click="newsletterOpen = true" class="bg-red-600 text-white text-xs font-bold px-4 py-2 rounded hover:bg-red-700 transition hidden sm:block">S'abonner</button>
+                        <a href="{% url 'account_login' %}" class="text-xs font-bold text-gray-700 hover:text-red-600 transition hidden sm:block">Connexion</a>
+                        <a href="{% url 'account_signup' %}" class="bg-red-600 text-white text-xs font-bold px-4 py-2 rounded hover:bg-red-700 transition hidden sm:block">S'inscrire</a>
                     {% endif %}
                 </div>
             </div>
