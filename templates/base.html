@@ -6,11 +6,21 @@
     <title>{% block title %}Le Quotidien — Site d'Information{% endblock %}</title>
     
     {% block meta %}
-    <meta name="description" content="Le Quotidien - Votre source d'information indépendante.">
-    <!-- Open Graph -->
-    <meta property="og:title" content="Le Quotidien">
-    <meta property="og:description" content="Votre source d'information indépendante.">
-    <meta property="og:type" content="website">
+    <meta name="description" content="{% block meta_description %}Le Quotidien - Votre source d'information indépendante.{% endblock %}">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:title" content="{% block og_title %}{{ article.title|default:'Le Quotidien' }}{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}{{ article.excerpt|default:'Votre source d\'information indépendante.' }}{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% if article.featured_image %}{{ article.featured_image.url }}{% else %}/static/img/og-default.jpg{% endif %}{% endblock %}">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="{{ request.build_absolute_uri }}">
+    <meta property="twitter:title" content="{% block twitter_title %}{{ article.title|default:'Le Quotidien' }}{% endblock %}">
+    <meta property="twitter:description" content="{% block twitter_description %}{{ article.excerpt|default:'Votre source d\'information indépendante.' }}{% endblock %}">
+    <meta property="twitter:image" content="{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{% if article.featured_image %}{{ article.featured_image.url }}{% else %}/static/img/og-default.jpg{% endif %}{% endblock %}">
     {% endblock %}
     
     <!-- Tailwind CSS -->
@@ -23,6 +33,11 @@
     
     <!-- HTMX -->
     <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
+    <script>
+        document.body.addEventListener('htmx:configRequest', (event) => {
+            event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+        });
+    </script>
     
     <!-- Alpine.js -->
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -160,6 +175,37 @@ toggleDarkMode() {
 
                 <!-- Search & Actions -->
                 <div class="flex items-center space-x-3">
+                    {% if user.is_authenticated %}
+                    <div class="relative" x-data="{ open: false }">
+                        <button @click="open = !open" 
+                                class="p-2 rounded-full hover:bg-gray-100 transition relative"
+                                hx-get="{% url 'notification_list' %}"
+                                hx-target="#notifications-dropdown"
+                                hx-trigger="click">
+                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                            </svg>
+                            <div id="notification-badge-container" 
+                                 hx-get="{% url 'notification_count' %}" 
+                                 hx-trigger="load, every 30s">
+                                {% include "core/partials/notification_count.html" %}
+                            </div>
+                        </button>
+                        
+                        <!-- Notifications Dropdown -->
+                        <div x-show="open" @click.away="open = false" 
+                             class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50 overflow-hidden"
+                             x-cloak>
+                            <div class="p-4 border-b border-gray-100 flex justify-between items-center">
+                                <span class="font-bold text-gray-800">Notifications</span>
+                            </div>
+                            <div id="notifications-dropdown" class="max-h-96 overflow-y-auto">
+                                <div class="p-4 text-center text-gray-500 italic">Chargement...</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
                     <button @click="toggleDarkMode()" class="p-2 rounded-full hover:bg-gray-100 transition text-gray-600 dark:text-gray-300">
                         <svg x-show="!darkMode" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
                         <svg x-show="darkMode" x-cloak class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 18v1m9-9h1M3 9h1m17.657 5.657l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>

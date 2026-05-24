@@ -1,0 +1,25 @@
+{% for notification in notifications %}
+<div class="p-4 border-b border-gray-50 hover:bg-gray-50 transition {% if not notification.is_read %}bg-blue-50/30{% endif %}">
+    <div class="flex justify-between items-start">
+        <div>
+            <p class="text-sm font-bold text-gray-900">{{ notification.title }}</p>
+            <p class="text-xs text-gray-600 mt-1">{{ notification.message }}</p>
+            <p class="text-[10px] text-gray-400 mt-2">{{ notification.created_at|timesince }}</p>
+        </div>
+        {% if not notification.is_read %}
+        <button hx-post="{% url 'mark_notification_as_read' notification.pk %}" 
+                hx-target="#notifications-dropdown"
+                class="text-blue-600 hover:text-blue-800">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.523 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/></svg>
+        </button>
+        {% endif %}
+    </div>
+    {% if notification.link %}
+    <a href="{{ notification.link }}" class="text-xs text-red-600 font-bold hover:underline mt-2 inline-block">Voir plus</a>
+    {% endif %}
+</div>
+{% empty %}
+<div class="p-8 text-center text-gray-500 italic">
+    Aucune notification pour le moment.
+</div>
+{% endfor %}

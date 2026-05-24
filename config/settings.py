@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
+    'django.contrib.sitemaps',
     # Third party apps
     'storages',
     'allauth',
@@ -100,6 +101,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+    'simple_history.middleware.HistoryRequestMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -117,7 +119,8 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'weblog.context_processors.categories_processor',
                 'newsletter.views.newsletter_form_context',
-            ],
+                'core.context_processors.notifications_processor',
+                ],
         },
     },
 ]
@@ -194,3 +197,7 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
+
+# Email settings
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'Le Quotidien <noreply@lequotidien.fr>'

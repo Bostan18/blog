@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /accounts/
+Disallow: /dashboard/
+
+Sitemap: {{ protocol }}://{{ domain }}/sitemap.xml

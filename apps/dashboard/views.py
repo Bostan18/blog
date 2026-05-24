@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
-from weblog.models import Article
+from weblog.models import Article, Category
 from weblog.forms import ArticleForm
 from comments.models import Comment
 from django.contrib import messages
@@ -8,12 +8,18 @@ from django.db.models import Sum, Avg, F
 from newsletter.models import Subscriber
 from users.models import PromotionRequest
 from users.forms import UserProfileForm, PromotionRequestForm
+from core.utils import log_activity
 
 def is_writer_or_admin(user):
     return user.is_authenticated and (user.role in ['WRITER', 'EDITOR', 'ADMIN'] or user.is_staff)
 
 def is_editor_or_admin(user):
     return user.is_authenticated and (user.role in ['EDITOR', 'ADMIN'] or user.is_staff)
+
+@login_required
+def favorite_list(request):
+    favorites = FavoriteArticle.objects.filter(user=request.user).select_related('article', 'article__category', 'article__author')
+    return render(request, 'dashboard/favorite_list.html', {'favorites': favorites})
 
 @login_required
 def dashboard_home(request):
@@ -37,6 +43,7 @@ def article_create(request):
             article.author = request.user
             article.save()
             form.save_m2m()
+            log_activity(request.user, "Création d'article", f"Article: {article.title} (Statut: {article.status})")
             messages.success(request, "L'article a été créé avec succès.")
             return redirect('dashboard:home')
     else:
@@ -56,6 +63,7 @@ def article_update(request, pk):
         form = ArticleForm(request.POST, request.FILES, instance=article)
         if form.is_valid():
             form.save()
+            log_activity(request.user, "Modification d'article", f"Article: {article.title}")
             messages.success(request, "L'article a été mis à jour.")
             return redirect('dashboard:home')
     else:
@@ -219,9 +227,27 @@ def promotion_request_handle(request, pk, action):
         user = promo_req.user
         user.role = promo_req.requested_role
         user.save()
+        log_activity(request.user, "Approbation de promotion", f"Utilisateur: {user.username}, Nouveau rôle: {user.role}")
         messages.success(request, f"La demande de {user.username} a été approuvée.")
     elif action == 'reject':
         promo_req.status = 'REJECTED'
+        log_activity(request.user, "Rejet de promotion", f"Utilisateur: {promo_req.user.username}")
         messages.info(request, f"La demande de {promo_req.user.username} a été rejetée.")
     promo_req.save()
     return redirect('dashboard:promotion_request_list')
+
+@login_required
+@user_passes_test(is_editor_or_admin)
+def pending_article_list(request):
+    articles = Article.objects.filter(status='SUBMITTED').order_by('-created_at')
+    return render(request, 'dashboard/pending_article_list.html', {'articles': articles})
+
+@login_required
+@user_passes_test(is_editor_or_admin)
+def article_approve(request, pk):
+    article = get_object_or_404(Article, pk=pk)
+    article.status = 'PUBLISHED'
+    article.save()
+    log_activity(request.user, "Approbation d'article", f"Article: {article.title} par {article.author}")
+    messages.success(request, f"L'article '{article.title}' a été publié.")
+    return redirect('dashboard:pending_article_list')

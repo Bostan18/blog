@@ -5,8 +5,11 @@ app_name = 'dashboard'
 
 urlpatterns = [
     path('', views.dashboard_home, name='home'),
+    path('favorites/', views.favorite_list, name='favorite_list'),
     path('articles/new/', views.article_create, name='article_create'),
+    path('articles/pending/', views.pending_article_list, name='pending_article_list'),
     path('articles/<int:pk>/edit/', views.article_update, name='article_update'),
+    path('articles/<int:pk>/approve/', views.article_approve, name='article_approve'),
     path('comments/', views.comment_list, name='comment_list'),
     path('comments/<int:pk>/toggle-active/', views.comment_toggle_active, name='comment_toggle_active'),
     path('subscribers/', views.subscriber_list, name='subscriber_list'),

@@ -1,0 +1,55 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Mes Favoris — Le Quotidien{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="p-6 border-b border-gray-200 flex items-center justify-between">
+        <h3 class="font-bold text-gray-800 text-xl">Mes Favoris</h3>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left">
+            <thead>
+                <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+                    <th class="px-6 py-4 font-bold">Article</th>
+                    <th class="px-6 py-4 font-bold">Catégorie</th>
+                    <th class="px-6 py-4 font-bold">Auteur</th>
+                    <th class="px-6 py-4 font-bold">Ajouté le</th>
+                    <th class="px-6 py-4 font-bold">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+                {% for fav in favorites %}
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-6 py-4">
+                        <div class="font-bold text-gray-900">{{ fav.article.title }}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="text-sm text-gray-600">{{ fav.article.category.name }}</span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="text-sm text-gray-600">{{ fav.article.author.username }}</span>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-500">
+                        {{ fav.created_at|date:"d M Y" }}
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-3">
+                            <a href="{% url 'weblog:article_detail' fav.article.slug %}" target="_blank" class="text-indigo-600 hover:text-indigo-900 transition">
+                                Lire l'article
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="px-6 py-12 text-center text-gray-500 italic">
+                        Vous n'avez pas encore d'articles favoris.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

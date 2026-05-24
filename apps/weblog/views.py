@@ -1,12 +1,37 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth import get_user_model
+from django.contrib.auth.decorators import login_required
 from django.utils import timezone
-from .models import Article, Category
+from .models import Article, Category, FavoriteArticle
 
 from django.db.models import F
 
+@login_required
+def toggle_favorite(request, pk):
+    article = get_object_or_404(Article, pk=pk)
+    favorite, created = FavoriteArticle.objects.get_or_create(user=request.user, article=article)
+    
+    if not created:
+        favorite.delete()
+        is_favorite = False
+    else:
+        is_favorite = True
+        
+    if request.headers.get('HX-Request'):
+        return render(request, "weblog/partials/favorite_button.html", {
+            'article': article, 
+            'is_favorite': is_favorite
+        })
+    
+    return redirect('weblog:article_detail', slug=article.slug)
+
 def article_detail(request, slug):
     article = get_object_or_404(Article.published, slug=slug)
+    
+    # Vérifier si l'article est en favoris pour l'utilisateur
+    is_favorite = False
+    if request.user.is_authenticated:
+        is_favorite = FavoriteArticle.objects.filter(user=request.user, article=article).exists()
     
     # Incrémenter le compteur de vues
     Article.objects.filter(pk=article.pk).update(views_count=F('views_count') + 1)
@@ -21,6 +46,7 @@ def article_detail(request, slug):
         'article': article,
         'latest_articles': latest_articles,
         'recommended_articles': recommended_articles,
+        'is_favorite': is_favorite,
     }
     return render(request, 'weblog/article_detail.html', context)
 
@@ -59,12 +85,13 @@ def category_detail(request, slug):
 
 def author_index(request):
     User = get_user_model()
-    # On récupère les auteurs qui ont au moins un article publié
-    authors = User.objects.filter(
-        articles__status='PUBLISHED',
-        articles__published_at__lte=timezone.now()
-    ).distinct()
-    return render(request, 'weblog/author_index.html', {'authors': authors})
+    # On récupère toute l'équipe éditoriale (ceux qui ont le droit de publier ou modérer)
+    # Tri par rôle (Admin > Editeur > Rédacteur) puis par nom
+    team = User.objects.filter(
+        role__in=['WRITER', 'EDITOR', 'ADMIN']
+    ).order_by('role', 'last_name', 'username')
+    
+    return render(request, 'weblog/author_index.html', {'authors': team})
 
 def author_detail(request, username):
     User = get_user_model()
