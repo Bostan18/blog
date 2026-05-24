@@ -1,20 +1,27 @@
 version: '3.8'
 
+# 📰 Le Quotidien - Docker Compose Configuration
+# This setup includes Django (web), PostgreSQL (db), Redis (cache/broker), and Celery (worker).
+
 services:
+  # 🗄️ Database: PostgreSQL
   db:
     image: postgres:16-alpine
     volumes:
       - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - .env
     environment:
-      - POSTGRES_DB=blog_db
-      - POSTGRES_USER=blog_user
-      - POSTGRES_PASSWORD=blog_password
+      - POSTGRES_DB=${POSTGRES_DB:-blog_db}
+      - POSTGRES_USER=${POSTGRES_USER:-blog_user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-blog_password}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U blog_user -d blog_db"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-blog_user} -d $${POSTGRES_DB:-blog_db}"]
       interval: 5s
       timeout: 5s
       retries: 5
 
+  # 🏎️ Cache & Message Broker: Redis
   redis:
     image: redis:7-alpine
     healthcheck:
@@ -23,6 +30,7 @@ services:
       timeout: 3s
       retries: 5
 
+  # 🌐 Web Application: Django
   web:
     build: .
     command: python manage.py runserver 0.0.0.0:8000
@@ -30,16 +38,32 @@ services:
       - .:/app
     ports:
       - "8000:8000"
+    env_file:
+      - .env
     environment:
       - DEBUG=1
-      - DATABASE_URL=postgres://blog_user:blog_password@db:5432/blog_db
+      - DATABASE_URL=postgres://${POSTGRES_USER:-blog_user}:${POSTGRES_PASSWORD:-blog_password}@db:5432/${POSTGRES_DB:-blog_db}
       - REDIS_URL=redis://redis:6379/1
-      - SECRET_KEY=django-insecure-development-key-change-me
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
+
+  # 👷 Background Tasks: Celery Worker
+  celery:
+    build: .
+    command: celery -A config worker --loglevel=info
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgres://${POSTGRES_USER:-blog_user}:${POSTGRES_PASSWORD:-blog_password}@db:5432/${POSTGRES_DB:-blog_db}
+      - REDIS_URL=redis://redis:6379/1
+    depends_on:
+      - redis
+      - db
 
 volumes:
   postgres_data:
